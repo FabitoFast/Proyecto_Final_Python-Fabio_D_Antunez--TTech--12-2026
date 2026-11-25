@@ -3,14 +3,14 @@ import funciones
 
 def mostrar_menu():
     print("\n" + "=" * 45)
-    print("   SISTEMA DE GESTION DE INVENTARIO - TFI")
+    print("   SISTEMA DE GESTION DE PRODUCTOS")
     print("=" * 45)
     print("1. Registrar nuevo producto")
     print("2. Listar catalogo de productos")
     print("3. Buscar producto por ID")
     print("4. Actualizar datos de producto")
     print("5. Eliminar producto")
-    print("6. Reporte de bajo stock")
+    print("6. Reporte de stock minimo")
     print("7. Salir del sistema")
     print("=" * 45)
 
