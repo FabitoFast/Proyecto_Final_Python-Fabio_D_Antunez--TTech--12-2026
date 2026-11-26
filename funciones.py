@@ -1,126 +1,187 @@
+"""
+Módulo de Lógica de Negocio e Interfaz de Consola
+Proyecto Final - Sistema de Gestión de Productos
+Captura entradas de usuario, valida tipos y restricciones, y coordina la persistencia con funciones_sql.
+"""
+
 import funciones_sql
 
+# ==============================================================================
+# FUNCIONES AUXILIARES DE VALIDACIÓN DEFENSIVA (ENTRADAS DE USUARIO)
+# ==============================================================================
+
+def pedir_texto(mensaje):
+    """
+    Solicita una cadena de texto por consola y garantiza que no esté vacía
+    ni contenga únicamente espacios en blanco (utilizando strip()).
+    """
+    while True:
+        valor = input(mensaje).strip()
+        if valor != "":
+            return valor
+        print("Error: El campo no puede quedar vacio. Intente nuevamente.")
+
 def pedir_entero(mensaje, minimo=0):
+    """
+    Solicita un número entero y maneja excepciones ValueError para evitar caídas del sistema.
+    Valida además que el número sea mayor o igual a la cota mínima especificada.
+    """
     while True:
         try:
             valor = int(input(mensaje).strip())
-            if valor < minimo:
-                print(f"Error: El numero debe ser mayor o igual a {minimo}.")
-                continue
-            return valor
+            if valor >= minimo:
+                return valor
+            print(f"Error: Ingrese un valor mayor o igual a {minimo}.")
         except ValueError:
             print("Error: Debe ingresar un numero entero valido.")
 
-def registrar_producto():
-    print("\n--- REGISTRO DE NUEVO PRODUCTO ---")
-    
+def pedir_flotante(mensaje, minimo=0.01):
+    """
+    Solicita un número decimal (float) con validación contra errores de conversión ValueError.
+    Exige que el precio sea estrictamente positivo (mayor o igual al mínimo establecido).
+    """
     while True:
-        nombre = input("Nombre del producto: ").strip()
-        if nombre:
-            break
-        print("Error: El nombre no puede estar vacio.")
-        
-    descripcion = input("Descripcion (opcional): ").strip()
-    categoria = input("Categoria: ").strip()
-    
-    cantidad = pedir_entero("Cantidad en stock: ", minimo=0)
-    precio = pedir_entero("Precio unitario: ", minimo=1)
-    
-    exito = funciones_sql.agregar_producto(nombre, descripcion, categoria, cantidad, precio)
+        try:
+            valor = float(input(mensaje).strip())
+            if valor >= minimo:
+                return valor
+            print(f"Error: El precio debe ser mayor o igual a {minimo}.")
+        except ValueError:
+            print("Error: Debe ingresar un valor numerico decimal valido (use punto como separador).")
+
+# ==============================================================================
+# OPERACIONES DEL SISTEMA (CRUD + REPORTES)
+# ==============================================================================
+
+def registrar_producto():
+    """
+    Opción 1: Captura los datos obligatorios de un producto, valida sus tipos
+    y solicita a funciones_sql la inserción parametrizada en la base de datos.
+    """
+    print("\n--- Registrar Nuevo Producto ---")
+    nombre = pedir_texto("Ingrese nombre del producto: ")
+    descripcion = input("Ingrese descripcion (opcional): ").strip()
+    categoria = pedir_texto("Ingrese categoria: ")
+    cantidad = pedir_entero("Ingrese cantidad en stock: ", minimo=0)
+    precio = pedir_flotante("Ingrese precio unitario ($): ", minimo=0.01)
+
+    exito = funciones_sql.registrar_producto(nombre, descripcion, categoria, cantidad, precio)
     if exito:
-        print("Producto registrado exitosamente en el sistema.")
+        print("\n¡Producto registrado exitosamente en la base de datos!")
     else:
-        print("No se pudo registrar el producto.")
+        print("\nError al registrar el producto en el sistema.")
 
 def listar_productos():
-    print("\n--- CATALOGO COMPLETO DE PRODUCTOS ---")
-    productos = funciones_sql.mostrar_productos()
-    
+    """
+    Opción 2: Recupera y muestra todos los productos registrados en el inventario.
+    Aplica formateo visual estructurado con alineación de columnas.
+    """
+    print("\n--- Catalogo General de Productos ---")
+    productos = funciones_sql.listar_productos()
+
     if not productos:
-        print("El inventario esta vacio actualmente.")
+        print("No hay productos registrados en el inventario.")
         return
-        
-    print(f"{'ID':<5} | {'Nombre':<20} | {'Categoria':<15} | {'Cantidad':<10} | {'Precio':<10}")
-    print("-" * 70)
+
+    # Encabezado formateado
+    print(f"{'ID':<5} | {'Nombre':<20} | {'Categoria':<15} | {'Stock':<8} | {'Precio ($)':<10} | {'Descripcion'}")
+    print("-" * 80)
     for prod in productos:
-        id_prod, nombre, desc, cat, cant, precio = prod
-        print(f"{id_prod:<5} | {nombre:<20} | {cat:<15} | {cant:<10} | ${precio:<9}")
+        p_id, p_nom, p_desc, p_cat, p_cant, p_prec = prod
+        desc_corta = (p_desc[:17] + '...') if len(p_desc) > 20 else p_desc
+        print(f"{p_id:<5} | {p_nom:<20} | {p_cat:<15} | {p_cant:<8} | {p_prec:<10.2f} | {desc_corta}")
+    print("-" * 80)
 
 def buscar_producto():
-    print("\n--- BUSQUEDA DE PRODUCTO POR ID ---")
+    """
+    Opción 3: Solicita un ID por teclado y consulta a la base de datos.
+    Muestra los detalles del producto si existe o informa si no fue encontrado.
+    """
+    print("\n--- Busqueda de Producto por ID ---")
     id_producto = pedir_entero("Ingrese el ID del producto a buscar: ", minimo=1)
-    
-    producto = funciones_sql.buscar_producto_por_id(id_producto)
-    if producto:
-        id_p, nombre, desc, cat, cant, precio = producto
+    prod = funciones_sql.buscar_producto_por_id(id_producto)
+
+    if prod:
+        p_id, p_nom, p_desc, p_cat, p_cant, p_prec = prod
         print("\nInformacion del Producto:")
-        print(f"  ID:          {id_p}")
-        print(f"  Nombre:      {nombre}")
-        print(f"  Descripcion: {desc}")
-        print(f"  Categoria:   {cat}")
-        print(f"  Cantidad:    {cant}")
-        print(f"  Precio:      ${precio}")
+        print(f"  ID         : {p_id}")
+        print(f"  Nombre     : {p_nom}")
+        print(f"  Descripcion: {p_desc if p_desc else '(Sin descripcion)'}")
+        print(f"  Categoria  : {p_cat}")
+        print(f"  Cantidad   : {p_cant} unidades")
+        print(f"  Precio     : $ {p_prec:.2f}")
     else:
-        print(f"No se encontro ningun producto con el ID {id_producto}.")
+        print(f"\nNo se encontro ningun producto registrado con el ID {id_producto}.")
 
 def actualizar_producto():
-    print("\n--- MODIFICAR PRODUCTO ---")
+    """
+    Opción 4: Permite modificar los datos de un producto existente.
+    Verifica previamente su existencia antes de solicitar los nuevos valores.
+    """
+    print("\n--- Actualizar Producto Existente ---")
     id_producto = pedir_entero("Ingrese el ID del producto que desea modificar: ", minimo=1)
-    
-    producto = funciones_sql.buscar_producto_por_id(id_producto)
-    if not producto:
-        print(f"No existe un producto con el ID {id_producto}.")
+    prod_existente = funciones_sql.buscar_producto_por_id(id_producto)
+
+    if not prod_existente:
+        print(f"\nError: No existe un producto con ID {id_producto}.")
         return
 
-    print(f"Modificando producto: {producto[1]}")
-    
-    while True:
-        nombre = input(f"Nuevo nombre [{producto[1]}]: ").strip()
-        if nombre:
-            break
-        print("Error: El nombre no puede estar vacio.")
-        
-    descripcion = input(f"Nueva descripcion [{producto[2]}]: ").strip()
-    categoria = input(f"Nueva categoria [{producto[3]}]: ").strip()
-    
-    cantidad = pedir_entero(f"Nueva cantidad [{producto[4]}]: ", minimo=0)
-    precio = pedir_entero(f"Nuevo precio [{producto[5]}]: ", minimo=1)
-    
-    exito = funciones_sql.modificar_producto(id_producto, nombre, descripcion, categoria, cantidad, precio)
+    print(f"\nModificando producto: {prod_existente[1]} (Categoria: {prod_existente[3]})")
+    print("Ingrese los nuevos datos del producto:")
+    nombre = pedir_texto("Nuevo nombre: ")
+    descripcion = input("Nueva descripcion (opcional): ").strip()
+    categoria = pedir_texto("Nueva categoria: ")
+    cantidad = pedir_entero("Nueva cantidad en stock: ", minimo=0)
+    precio = pedir_flotante("Nuevo precio unitario ($): ", minimo=0.01)
+
+    exito = funciones_sql.actualizar_producto(id_producto, nombre, descripcion, categoria, cantidad, precio)
     if exito:
-        print("Producto actualizado exitosamente.")
+        print(f"\n¡Producto con ID {id_producto} actualizado correctamente!")
     else:
-        print("Error al actualizar el producto.")
+        print("\nError al actualizar los datos del producto.")
 
 def eliminar_producto():
-    print("\n--- ELIMINAR PRODUCTO ---")
-    id_producto = pedir_entero("Ingrese el ID del producto que desea eliminar: ", minimo=1)
-    
-    producto = funciones_sql.buscar_producto_por_id(id_producto)
-    if not producto:
-        print(f"No existe ningun producto con el ID {id_producto}.")
+    """
+    Opción 5: Solicita un ID, valida su existencia y exige confirmacion explícita (s/n)
+    al usuario antes de ejecutar la baja física en la base de datos.
+    """
+    print("\n--- Eliminar Producto del Sistema ---")
+    id_producto = pedir_entero("Ingrese el ID del producto a eliminar: ", minimo=1)
+    prod = funciones_sql.buscar_producto_por_id(id_producto)
+
+    if not prod:
+        print(f"\nError: No existe ningun producto con el ID {id_producto}.")
         return
 
-    confirmacion = input(f"¿Esta seguro de que desea eliminar '{producto[1]}'? (s/n): ").strip().lower()
+    print(f"\nProducto seleccionado: ID {prod[0]} - {prod[1]} (Stock: {prod[4]})")
+    confirmacion = input("¿Esta seguro de que desea eliminar este producto? (s/n): ").strip().lower()
+
     if confirmacion == 's':
         exito = funciones_sql.eliminar_producto(id_producto)
         if exito:
-            print("Producto eliminado correctamente.")
+            print(f"\n¡Producto con ID {id_producto} eliminado con exito!")
         else:
-            print("Error al intentar eliminar el producto.")
+            print("\nError al intentar eliminar el producto.")
     else:
-        print("Operacion de eliminacion cancelada.")
+        print("\nOperacion de eliminacion cancelada por el usuario.")
 
 def reporte_stock():
-    print("\n--- REPORTE DE PRODUCTOS CON BAJO STOCK ---")
-    limite = pedir_entero("Ingrese el umbral maximo de stock para el reporte: ", minimo=0)
-    
+    """
+    Opción 6: Genera un reporte de alertas de productos con bajo stock.
+    Filtra por cota máxima de existencias y los despliega ordenados de menor a mayor cantidad.
+    """
+    print("\n--- Reporte de Stock Minimo ---")
+    limite = pedir_entero("Ingrese el umbral de cantidad para la alerta: ", minimo=0)
     productos = funciones_sql.reporte_bajo_stock(limite)
+
     if not productos:
-        print(f"No se encontraron productos con stock menor o igual a {limite}.")
+        print(f"\nNo se encontraron productos con stock igual o inferior a {limite} unidades.")
         return
-        
-    print(f"{'ID':<5} | {'Nombre':<20} | {'Stock':<10} | {'Precio':<10}")
-    print("-" * 55)
+
+    print(f"\nAlertas encontradas (Stock <= {limite}):")
+    print(f"{'ID':<5} | {'Nombre':<20} | {'Stock':<8} | {'Precio ($)':<10} | {'Categoria'}")
+    print("-" * 65)
     for prod in productos:
-        print(f"{prod[0]:<5} | {prod[1]:<20} | {prod[4]:<10} | ${prod[5]:<9}")
+        p_id, p_nom, _, p_cat, p_cant, p_prec = prod
+        print(f"{p_id:<5} | {p_nom:<20} | {p_cant:<8} | {p_prec:<10.2f} | {p_cat}")
+    print("-" * 65)

@@ -1,7 +1,17 @@
+"""
+Módulo Principal (Orquestador y Entry Point)
+Proyecto Final - Sistema de Gestión de Productos
+Coordina la inicialización de la base de datos y el flujo del menú interactivo en consola.
+"""
+
 import conexion
 import funciones
 
 def mostrar_menu():
+    """
+    Despliega en pantalla el menú principal del sistema.
+    Utiliza líneas divisorias calculadas con repetición de caracteres ("=" * 45).
+    """
     print("\n" + "=" * 45)
     print("   SISTEMA DE GESTION DE PRODUCTOS")
     print("=" * 45)
@@ -15,12 +25,19 @@ def mostrar_menu():
     print("=" * 45)
 
 def main():
+    """
+    Función principal de control.
+    1. Verifica e inicializa la tabla en SQLite si no existe.
+    2. Ejecuta el bucle continuo del menú hasta que el usuario elija la opción de salida.
+    """
+    # Inicialización preventiva: asegura que la base y tabla existan antes de operar
     conexion.crear_tabla()
-    
+
     while True:
         mostrar_menu()
         opcion = input("Seleccione una opcion (1-7): ").strip()
-        
+
+        # Estructura de control condicional para derivar la acción a funciones.py
         if opcion == "1":
             funciones.registrar_producto()
         elif opcion == "2":
@@ -35,9 +52,10 @@ def main():
             funciones.reporte_stock()
         elif opcion == "7":
             print("\nGracias por utilizar el Sistema de Gestion. ¡Hasta luego!")
-            break
+            break  # Finaliza el ciclo while y termina la ejecución
         else:
             print("\nError: Opcion no valida. Ingrese un numero del 1 al 7.")
 
+# Punto de entrada estándar en Python: garantiza que main() solo corra al ejecutarse como script directo
 if __name__ == "__main__":
     main()
