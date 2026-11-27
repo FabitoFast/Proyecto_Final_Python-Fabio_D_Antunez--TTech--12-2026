@@ -1,20 +1,8 @@
-"""
-Módulo de Lógica de Negocio e Interfaz de Consola
-Proyecto Final - Sistema de Gestión de Productos
-Captura entradas de usuario, valida tipos y restricciones, y coordina la persistencia con funciones_sql.
-"""
+# Módulo de Lógica de Negocio e Interfaz de Consola
 
 import funciones_sql
 
-# ==============================================================================
-# FUNCIONES AUXILIARES DE VALIDACIÓN DEFENSIVA (ENTRADAS DE USUARIO)
-# ==============================================================================
-
 def pedir_texto(mensaje):
-    """
-    Solicita una cadena de texto por consola y garantiza que no esté vacía
-    ni contenga únicamente espacios en blanco (utilizando strip()).
-    """
     while True:
         valor = input(mensaje).strip()
         if valor != "":
@@ -22,10 +10,6 @@ def pedir_texto(mensaje):
         print("Error: El campo no puede quedar vacio. Intente nuevamente.")
 
 def pedir_entero(mensaje, minimo=0):
-    """
-    Solicita un número entero y maneja excepciones ValueError para evitar caídas del sistema.
-    Valida además que el número sea mayor o igual a la cota mínima especificada.
-    """
     while True:
         try:
             valor = int(input(mensaje).strip())
@@ -36,10 +20,6 @@ def pedir_entero(mensaje, minimo=0):
             print("Error: Debe ingresar un numero entero valido.")
 
 def pedir_flotante(mensaje, minimo=0.01):
-    """
-    Solicita un número decimal (float) con validación contra errores de conversión ValueError.
-    Exige que el precio sea estrictamente positivo (mayor o igual al mínimo establecido).
-    """
     while True:
         try:
             valor = float(input(mensaje).strip())
@@ -49,15 +29,9 @@ def pedir_flotante(mensaje, minimo=0.01):
         except ValueError:
             print("Error: Debe ingresar un valor numerico decimal valido (use punto como separador).")
 
-# ==============================================================================
 # OPERACIONES DEL SISTEMA (CRUD + REPORTES)
-# ==============================================================================
 
 def registrar_producto():
-    """
-    Opción 1: Captura los datos obligatorios de un producto, valida sus tipos
-    y solicita a funciones_sql la inserción parametrizada en la base de datos.
-    """
     print("\n--- Registrar Nuevo Producto ---")
     nombre = pedir_texto("Ingrese nombre del producto: ")
     descripcion = input("Ingrese descripcion (opcional): ").strip()
@@ -72,10 +46,6 @@ def registrar_producto():
         print("\nError al registrar el producto en el sistema.")
 
 def listar_productos():
-    """
-    Opción 2: Recupera y muestra todos los productos registrados en el inventario.
-    Aplica formateo visual estructurado con alineación de columnas.
-    """
     print("\n--- Catalogo General de Productos ---")
     productos = funciones_sql.listar_productos()
 
@@ -93,10 +63,6 @@ def listar_productos():
     print("-" * 80)
 
 def buscar_producto():
-    """
-    Opción 3: Solicita un ID por teclado y consulta a la base de datos.
-    Muestra los detalles del producto si existe o informa si no fue encontrado.
-    """
     print("\n--- Busqueda de Producto por ID ---")
     id_producto = pedir_entero("Ingrese el ID del producto a buscar: ", minimo=1)
     prod = funciones_sql.buscar_producto_por_id(id_producto)
@@ -114,10 +80,6 @@ def buscar_producto():
         print(f"\nNo se encontro ningun producto registrado con el ID {id_producto}.")
 
 def actualizar_producto():
-    """
-    Opción 4: Permite modificar los datos de un producto existente.
-    Verifica previamente su existencia antes de solicitar los nuevos valores.
-    """
     print("\n--- Actualizar Producto Existente ---")
     id_producto = pedir_entero("Ingrese el ID del producto que desea modificar: ", minimo=1)
     prod_existente = funciones_sql.buscar_producto_por_id(id_producto)
@@ -141,10 +103,6 @@ def actualizar_producto():
         print("\nError al actualizar los datos del producto.")
 
 def eliminar_producto():
-    """
-    Opción 5: Solicita un ID, valida su existencia y exige confirmacion explícita (s/n)
-    al usuario antes de ejecutar la baja física en la base de datos.
-    """
     print("\n--- Eliminar Producto del Sistema ---")
     id_producto = pedir_entero("Ingrese el ID del producto a eliminar: ", minimo=1)
     prod = funciones_sql.buscar_producto_por_id(id_producto)
@@ -166,10 +124,6 @@ def eliminar_producto():
         print("\nOperacion de eliminacion cancelada por el usuario.")
 
 def reporte_stock():
-    """
-    Opción 6: Genera un reporte de alertas de productos con bajo stock.
-    Filtra por cota máxima de existencias y los despliega ordenados de menor a mayor cantidad.
-    """
     print("\n--- Reporte de Stock Minimo ---")
     limite = pedir_entero("Ingrese el umbral de cantidad para la alerta: ", minimo=0)
     productos = funciones_sql.reporte_bajo_stock(limite)
