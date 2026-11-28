@@ -2,6 +2,8 @@
 
 import funciones_sql
 
+# Validaciones de entrada
+
 def pedir_texto(mensaje):
     while True:
         valor = input(mensaje).strip()
@@ -82,25 +84,56 @@ def buscar_producto():
 def actualizar_producto():
     print("\n--- Actualizar Producto Existente ---")
     id_producto = pedir_entero("Ingrese el ID del producto que desea modificar: ", minimo=1)
-    prod_existente = funciones_sql.buscar_producto_por_id(id_producto)
+    prod = funciones_sql.buscar_producto_por_id(id_producto)
 
-    if not prod_existente:
-        print(f"\nError: No existe un producto con ID {id_producto}.")
+    if not prod:
+        print(f"\nError: No existe un producto registrado con el ID {id_producto}.")
         return
 
-    print(f"\nModificando producto: {prod_existente[1]} (Categoria: {prod_existente[3]})")
-    print("Ingrese los nuevos datos del producto:")
-    nombre = pedir_texto("Nuevo nombre: ")
-    descripcion = input("Nueva descripcion (opcional): ").strip()
-    categoria = pedir_texto("Nueva categoria: ")
-    cantidad = pedir_entero("Nueva cantidad en stock: ", minimo=0)
-    precio = pedir_flotante("Nuevo precio unitario ($): ", minimo=0.01)
+    p_id, p_nom, p_desc, p_cat, p_cant, p_prec = prod
+    print(f"\nProducto actual: [{p_id}] {p_nom} | Categoria: {p_cat} | Stock: {p_cant} | Precio: ${p_prec:.2f}")
+    print("\nCampos para actualizar:")
+    print("1. Actualizar nombre")
+    print("2. Actualizar descripcion")
+    print("3. Actualizar categoria")
+    print("4. Actualizar cantidad")
+    print("5. Actualizar precio")
 
-    exito = funciones_sql.actualizar_producto(id_producto, nombre, descripcion, categoria, cantidad, precio)
-    if exito:
-        print(f"\n¡Producto con ID {id_producto} actualizado correctamente!")
-    else:
-        print("\nError al actualizar los datos del producto.")
+    opcion = input("Seleccione la opcion deseada: ").strip()
+
+    match opcion:
+        case "1":
+            nuevo_nombre = pedir_texto("Ingrese el nuevo nombre del producto: ")
+            if funciones_sql.actualizar_nombre(id_producto, nuevo_nombre):
+                print("El nombre del producto ha sido actualizado")
+            else:
+                print("Error al actualizar el nombre")
+        case "2":
+            nueva_desc = input("Ingrese la nueva descripcion del producto: ").strip()
+            if funciones_sql.actualizar_descripcion(id_producto, nueva_desc):
+                print("La descripcion del producto ha sido actualizada")
+            else:
+                print("Error al actualizar la descripcion")
+        case "3":
+            nueva_cat = pedir_texto("Ingrese la nueva categoria del producto: ")
+            if funciones_sql.actualizar_categoria(id_producto, nueva_cat):
+                print("La categoria del producto ha sido actualizada")
+            else:
+                print("Error al actualizar la categoria")
+        case "4":
+            nueva_cant = pedir_entero("Ingrese el nuevo stock del producto: ", minimo=0)
+            if funciones_sql.actualizar_cantidad(id_producto, nueva_cant):
+                print("La cantidad del producto ha sido actualizada")
+            else:
+                print("Error al actualizar la cantidad")
+        case "5":
+            nuevo_precio = pedir_flotante("Ingrese el nuevo precio del producto: ", minimo=0.01)
+            if funciones_sql.actualizar_precio(id_producto, nuevo_precio):
+                print("El precio del producto ha sido actualizado")
+            else:
+                print("Error al actualizar el precio")
+        case _:
+            print("La opcion ingresada no es valida")
 
 def eliminar_producto():
     print("\n--- Eliminar Producto del Sistema ---")
@@ -111,7 +144,8 @@ def eliminar_producto():
         print(f"\nError: No existe ningun producto con el ID {id_producto}.")
         return
 
-    print(f"\nProducto seleccionado: ID {prod[0]} - {prod[1]} (Stock: {prod[4]})")
+    p_id, p_nom, _, _, p_cant, _ = prod
+    print(f"\nProducto seleccionado: ID {p_id} - {p_nom} (Stock actual: {p_cant})")
     confirmacion = input("¿Esta seguro de que desea eliminar este producto? (s/n): ").strip().lower()
 
     if confirmacion == 's':

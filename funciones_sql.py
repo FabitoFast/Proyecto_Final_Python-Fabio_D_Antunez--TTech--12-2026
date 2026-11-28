@@ -4,8 +4,7 @@ import sqlite3
 import conexion
 
 def registrar_producto(nombre, descripcion, categoria, cantidad, precio):
-    # Inserta un nuevo producto en la tabla 'productos'.
-    
+    # Inserta un nuevo producto en la tabla 'productos'
     conn = conexion.conectar()
     if conn is None:
         return False
@@ -26,8 +25,7 @@ def registrar_producto(nombre, descripcion, categoria, cantidad, precio):
         conn.close()
 
 def listar_productos():
-    # Recupera todos los registros del inventario ordenados por ID de forma ascendente.Retorna una lista de tuplas con los productos encontrados.
-
+    # Recupera todos los registros del inventario ordenados por ID de forma ascendente
     conn = conexion.conectar()
     if conn is None:
         return []
@@ -43,15 +41,13 @@ def listar_productos():
         conn.close()
 
 def buscar_producto_por_id(id_producto):
-    # Busca un producto específico a partir de su clave primaria (ID).
-
+    # Busca un producto por su clave primaria (ID)
     conn = conexion.conectar()
     if conn is None:
         return None
     try:
         cursor = conn.cursor()
         query = "SELECT id, nombre, descripcion, categoria, cantidad, precio FROM productos WHERE id = ?"
-    # El parámetro se pasa como tupla de un solo elemento (id_producto,)
         cursor.execute(query, (id_producto,))
         return cursor.fetchone()
     except sqlite3.Error as e:
@@ -60,33 +56,93 @@ def buscar_producto_por_id(id_producto):
     finally:
         conn.close()
 
-def actualizar_producto(id_producto, nombre, descripcion, categoria, cantidad, precio):
-    # Modifica los atributos de un producto existente identificado por su ID.
-    
+def actualizar_nombre(id_producto, nuevo_nombre):
+    # Actualiza solo el nombre del producto
     conn = conexion.conectar()
     if conn is None:
         return False
     try:
         cursor = conn.cursor()
-        query = """
-            UPDATE productos
-            SET nombre = ?, descripcion = ?, categoria = ?, cantidad = ?, precio = ?
-            WHERE id = ?
-        """
-        cursor.execute(query, (nombre, descripcion, categoria, cantidad, precio, id_producto))
+        cursor.execute("UPDATE productos SET nombre = ? WHERE id = ?", (nuevo_nombre, id_producto))
         conn.commit()
-        # cursor.rowcount verifica cuántas filas fueron afectadas
         return cursor.rowcount > 0
     except sqlite3.Error as e:
-        print(f"Error al actualizar producto: {e}")
+        print(f"Error al actualizar nombre: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def actualizar_descripcion(id_producto, nueva_descripcion):
+    # Actualiza solo la descripcion del producto
+    conn = conexion.conectar()
+    if conn is None:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE productos SET descripcion = ? WHERE id = ?", (nueva_descripcion, id_producto))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Error al actualizar descripcion: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def actualizar_categoria(id_producto, nueva_categoria):
+    # Actualiza solo la categoria del producto
+    conn = conexion.conectar()
+    if conn is None:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE productos SET categoria = ? WHERE id = ?", (nueva_categoria, id_producto))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Error al actualizar categoria: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def actualizar_cantidad(id_producto, nueva_cantidad):
+    # Actualiza solo el stock del producto
+    conn = conexion.conectar()
+    if conn is None:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE productos SET cantidad = ? WHERE id = ?", (nueva_cantidad, id_producto))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Error al actualizar cantidad: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def actualizar_precio(id_producto, nuevo_precio):
+    # Actualiza solo el precio del producto
+    conn = conexion.conectar()
+    if conn is None:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE productos SET precio = ? WHERE id = ?", (nuevo_precio, id_producto))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Error al actualizar precio: {e}")
         conn.rollback()
         return False
     finally:
         conn.close()
 
 def eliminar_producto(id_producto):
-    # Elimina físicamente un producto de la base de datos según su ID.
-    
+    # Elimina un producto por su ID
     conn = conexion.conectar()
     if conn is None:
         return False
@@ -103,8 +159,7 @@ def eliminar_producto(id_producto):
         conn.close()
 
 def reporte_bajo_stock(limite):
-    # Consulta productos con existencias menores o iguales a un umbral dado.
-    
+    # Consulta productos con stock menor o igual al limite ordenados de menor a mayor
     conn = conexion.conectar()
     if conn is None:
         return []

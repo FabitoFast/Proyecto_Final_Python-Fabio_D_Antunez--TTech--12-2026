@@ -6,8 +6,7 @@ import sqlite3
 DATABASE_NAME = "inventario.db"
 
 def conectar():
-    # Establece y retorna un objeto de conexión física con la base de datos SQLite.
-    
+    # Establece y retorna un objeto de conexión física con la base de datos SQLite
     try:
         conn = sqlite3.connect(DATABASE_NAME)
         return conn
@@ -16,8 +15,7 @@ def conectar():
         return None
 
 def crear_tabla():
-    # Crea la tabla 'productos' en la base de datos si aún no existe.
-    
+    # Crea la tabla 'productos' en la base de datos si aún no existe
     conn = conectar()
     if conn is None:
         print("No se pudo establecer la conexión para verificar la estructura de la base de datos.")
@@ -25,7 +23,6 @@ def crear_tabla():
 
     try:
         cursor = conn.cursor()
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS productos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
